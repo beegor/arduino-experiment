@@ -10,7 +10,7 @@
 #include <Wire.h> // I2C Library
 BH1750FVI LightSensor;
 RCSwitch transmiter = RCSwitch();
-int officeNo = 1;
+int officeNo = 2;
 boolean motionDetectedSinceLastSend = false;
 dht DHT;
 

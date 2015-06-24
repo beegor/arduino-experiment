@@ -20,9 +20,12 @@ void setup() {
   receiver.enableReceive(0);  // Receiver on inerrupt 0 => that is pin #2
  
   Serial.begin(9600);
+  
   while (!Serial) {
     ; // wait for serial port to connect. Needed for Leonardo only
   }
+
+
 
   // start the Ethernet connection:
   if (Ethernet.begin(mac) == 0) {
@@ -42,11 +45,13 @@ void setup() {
     // if you didn't get a connection to the server:
     Serial.println("connection failed");
   }
+  
 
 }
 
 void loop() {
   if (receiver.available()) {
+    Serial.println("Receiver available");
     dataReceived();
   }
   delay(1000);
@@ -54,32 +59,50 @@ void loop() {
 
 void dataReceived(){
   long value = receiver.getReceivedValue();
+  Serial.print("Data received: ");Serial.println(value);
 
-  int motionBeforSecond = value % 10000;
-  int temp = (value / 100000) % 100 - 50; // we added 50 on nano side
-  int lightOnValue = value / 10000000;
-  String lightOn = lightOnValue == 1 ? "On" : "Off";
+  long lightValue = value / 100000000;
+  long officeNo = (value / 100000) % 10;
+  long temp = (value / 1000) % 100 - 50;    
+  long hum  = (value / 10) % 100;
+  long motionBeforSecond = value % 10; 
   
-  Serial.println("R3 received info\t"); 
-  Serial.print("Motion before ");
-  Serial.print(motionBeforSecond);
-  Serial.print(" seconds\tTemp: ");
-  Serial.print(temp);
-  Serial.print("\tLigh: ");
-  Serial.println(lightOn);
+  Serial.println("R3 received info");
   
+  Serial.print("Value= ");Serial.println(value);  //privremena provjera...
+ 
+  Serial.print("Broj ureda: ");       
+  Serial.println(officeNo);    
+                
+  Serial.print("Svjetlost: ");          
+  Serial.println(lightValue);
+  
+  Serial.print("Temperatura:");          
+  Serial.println(temp);
+  
+  Serial.print("Vlaznost :");             
+  Serial.print(hum);   
+  Serial.println(" %");
+  
+  Serial.print("Motion: ");
+  Serial.println(motionBeforSecond);
+    
   receiver.resetAvailable();
-  sendToServer(motionBeforSecond, temp, lightOn);
+  sendToServer(officeNo, hum, motionBeforSecond, temp, lightValue);
 }
 
-void sendToServer(int motionBeforSecond, int temp, String lightOn ) {
+void sendToServer(int officeNo, int hum, int motionDetected, int temp, int lightOn ) {
 
     client.print("GET /receive?");
-    client.print("motionBeforeSecond=");
-    client.print(motionBeforSecond);
+    client.print("officeNo=");
+    client.print(officeNo);
+    client.print("&motionDetected=");
+    client.print(motionDetected);
     client.print("&temp=");
     client.print(temp);
-    client.print("&lightOn=");
+    client.print("&hum=");
+    client.print(hum);
+    client.print("&light=");
     client.print(lightOn);
     client.println(" HTTP/1.1");
     client.println("Host: 192.168.0.100");
